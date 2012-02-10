@@ -1,0 +1,6 @@
+<%
+  required = '-r features -r features/support -r features/pages'
+  base_parameters = "--tags ~@wip #{required} --no-source --format pretty"
+  report = '--format html --out cukes.html'
+%>
+default: <%= base_parameters %> <%= report %>

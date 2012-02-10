@@ -1,0 +1,6 @@
+---
+user_types:
+  a user who is awesome: some_user_123
+users:
+  some_user_123:
+    :password: aaaaaa111111

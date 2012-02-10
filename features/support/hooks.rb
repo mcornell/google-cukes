@@ -1,22 +1,33 @@
+if ENV['HTMLUNIT']
+  require File.dirname(__FILE__) + '/environment/selenium_server'
+  @selenium_server = SeleniumServer.new
+  @selenium_server.start_server
+
+  at_exit do
+    @selenium_server.stop_server
+  end
+end
+
 Before do
-  case RUBY_PLATFORM
-    when /java/
-      if WEBDRIVER
-        puts "Creating Browser"
-        @browser = BROWSER.new BROWSER_TYPE
-        puts "Browser Created"
-      else
-        browser_opts = {}
-        browser_opts[:secure_ssl] = false #our datapower source is insecure.
-        if REGION_BASE_URL.downcase =~ /^https:/
-          browser_opts[:proxy] = HTTP_PROXY
-        end
-        @browser = BROWSER.new browser_opts
+  puts "Creating Browser"
+  unless HEADLESS
+    @browser = BROWSER.new BROWSER_TYPE
+  else
+    if RUBY_PLATFORM =~ /java/
+      browser_opts = {}
+      browser_opts[:secure_ssl] = false
+      browser_opts[:proxy] = ENV['PROXY'] if ENV['PROXY']
+      @browser = BROWSER.new browser_opts
+      if ENV['PROXY_USER']
+        puts "setting proxy user"
+        @browser.webclient.getCredentialsProvider.addCredentials ENV['PROXY_USER'], ENV['PROXY_PASS']
       end
     else
-      raise "This platform is not supported (#{RUBY_PLATFORM})"
+      puts "Connecting to Selenium Server"
+      @browser = BROWSER.new :remote, :url => 'http://127.0.0.1:4444/wd/hub', :desired_capabilities => BROWSER_TYPE
+    end
   end
-  @base_url = REGION_BASE_URL
+  puts "Browser Created"
 end
 
 After do
@@ -25,29 +36,9 @@ end
 
 After do |scenario|
   if scenario.failed?
-    if WEBDRIVER
-      @browser.windows.each_with_index do |window, idx|
-        window.use
-        if idx == 0
-          write_errors([ENV['TEST_SERVER'] || 'devl'], scenario, @browser, false)
-        else
-          write_errors([ENV['TEST_SERVER'] || 'devl'], scenario, @browser, true)
-        end
-      end
-    else
-      write_errors([ENV['TEST_SERVER'] || 'devl'], scenario, @browser)
-      write_errors([ENV['TEST_SERVER'] || 'devl'], scenario, @popup_browser, true) if @popup_browser
-    end
+    write_errors([ENV['TEST_SERVER'] || 'devl'], scenario, @browser)
   end
 end
 
-After('@payment') do
-  puts "\nsleeping to allow payments to register"
-  sleep 8
-end
 
-Before('@email_receive') do
-  unless email_sleep
-    sleep 30
-  end
-end
+

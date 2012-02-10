@@ -5,11 +5,14 @@ module MissingPageHelpers
 
   # A collection of class methods that generate helper methods that are mixed into a calling class.
   module ClassMethods
-    def label name, identifier=nil, &block
+    def ol name, identifier=nil, &block
       define_method(name) do
-        self.send("#{name}_label").text
+        self.send("#{name}_ol").text
       end
-      create_element_getter "#{name}_label", identifier, __method__, block
+      define_method("#{name}_items") do
+        self.send("#{name}_ol").lis
+      end
+      create_element_getter "#{name}_ol", identifier, __method__, block
     end
 
   end

@@ -9,8 +9,13 @@ class BrowserPicker
     @headless
   end
 
+  def webdriver?
+    return false if (headless? && RUBY_PLATFORM =~ /java/)
+    return true
+  end
+
   def browser_obj
-    if headless?
+    unless webdriver?
       require 'celerity'
       browser = Celerity::Browser
       Celerity.index_offset = 0
@@ -18,19 +23,22 @@ class BrowserPicker
     else
       require "watir-webdriver"
       browser = Watir::Browser
-      puts "Running in a Browser"
+      puts "Running with WebDriver"
     end
     browser
   end
 
   def browser_type
-    unless headless?
+    if webdriver?
       if ENV['CHROME']
         puts "Using Chrome"
         return :chrome
       elsif ENV['IE']
         puts "Using IE"
         return :ie
+      elsif ENV['HTMLUNIT']
+
+        return WebDriver::Remote::Capabilities.htmlunit(:javascript_enabled => true)
       else #ENV['FIREFOX']
         puts "Using Firefox"
         if ENV['FIREFOXPATH']
@@ -44,4 +52,6 @@ class BrowserPicker
     end
 
   end
+
+
 end
