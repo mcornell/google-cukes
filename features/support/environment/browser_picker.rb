@@ -37,7 +37,6 @@ class BrowserPicker
         puts "Using IE"
         return :ie
       elsif ENV['HTMLUNIT']
-
         return WebDriver::Remote::Capabilities.htmlunit(:javascript_enabled => true)
       else #ENV['FIREFOX']
         puts "Using Firefox"

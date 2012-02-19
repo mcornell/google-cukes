@@ -2,5 +2,7 @@
   required = '-r features -r features/support -r features/pages'
   base_parameters = "--tags ~@wip #{required} --no-source --format pretty"
   report = '--format html --out cukes.html'
+  hudson_report = '--format junit --out hudson_report --format html --out hudson_report/cucumber.html'
 %>
 default: <%= base_parameters %> <%= report %>
+hudson: <%= base_parameters %> <%= hudson_report %>
